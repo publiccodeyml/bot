@@ -1,0 +1,26 @@
+{
+  "name": "js-action-template",
+  "version": "0.0.0",
+  "description": "GitHub JavaScript action template",
+  "main": "index.js",
+  "scripts": {
+    "build": "ncc build index.js --license licenses.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/italia/js-action-template.git"
+  },
+  "author": "Italia",
+  "license": "EUPL-1.2",
+  "bugs": {
+    "url": "https://github.com/italia/js-action-template/issues"
+  },
+  "homepage": "https://github.com/italia/js-action-template#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.27.0"
+  }
+}
