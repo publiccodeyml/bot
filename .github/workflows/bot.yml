@@ -1,0 +1,13 @@
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          username: yaml-9000
+        env:
+          GITHUB_TOKEN: ${{ secrets.YAML_BOT_TOKEN }}

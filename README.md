@@ -1,39 +1,62 @@
-# GitHub JavaScript action template
+# bot
 
-[![Join the #publiccode channel](https://img.shields.io/badge/Slack%20channel-%23publiccode-blue.svg?logo=slack)](https://developersitalia.slack.com/messages/CAM3F785T)
-[![Get invited](https://slack.developers.italia.it/badge.svg)](https://slack.developers.italia.it/)
+The bot automating the [publiccodeyml organization](https://github.com/publiccodeyml/)
+procedures implemented as a GitHub action.
 
-This is a template repository for [creating a GitHub JavaScript action](https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action).
+## Commands
 
-Click `Use this template` button to create your action based on this template.
+The bot is instructed to perform tasks using its tag (fe. @yaml-9000) in issues
+and PR comments followed by the command.
 
-A sample action to get GitHub star counts and license from a given repository.
+* `@yaml-9000 vote-start`: Open the pools for the voting procedure on the current
+  proposal
 
-## Inputs
+* `@yaml-9000 vote-end`: End the voting procedure, closing the pools and
+  announcing the results.
 
-The following inputs briefly explained here are fully declared and documented in the [action.yaml](action.yaml):
+* `@yaml-9000 breaking-change`: Mark the proposal as a [breaking change to the Standard](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#proposing-changes).
 
-* `repo` [**Required**] - GitHub repository to fetch (default `${{ github.repository }}`)
+  Aliases: `breaking`, `major`
 
-* `github_token` [**Optional**] - GitHub token to interact with GitHub API (default `${{ github.token }}`)
+* `@yaml-9000 minor-change`: Mark the proposal as a [minor change to the Standard](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#proposing-changes)
+
+  Aliases: `minor`
+
+* `@yaml-9000 bugfix-change`: Mark the proposal as a [bugfix change to the Standard](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#proposing-changes)
+
+  Aliases: `bugfix`, `patch`
+
+* `@yaml-9000 national-section`: Mark the proposal as a [change in the national section](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#country-specific-sections) ([doc](https://yml.publiccode.tools/country.html))
+
+  Aliases: `national`, `country-section`, `country`, `country-specific`
+
+## Inputs to the GitHub Action
+
+Use the following inputs in the GitHub action via `with`:
+
+* `username` [**Optional**] - GitHub repository to fetch (default `bot`)
+* `github_token` [**Optional**] - GitHub token to interact with GitHub API (default `${{ github.token }}`).
+
+  If the environment `GITHUB_TOKEN` variable is set, it takes precedence over
+  the input.
 
 ## Examples
 
-Include this action in your repo by creating 
-`.github/workflows/js-action-template.yml`and edit where needed:
+Include this action in your repo by creating
+`.github/workflows/publiccodeyml-bot.yml`and edit where needed:
 
 ```yml
-on: [push, pull_request]
+on:
+  issue_comment:
+    types: [created]
 
 jobs:
   examplejob:
     runs-on: ubuntu-latest
-    name: Get Stars and License
     steps:
-    - uses: actions/checkout@v2
-    - uses: italia/js-action-template@v1
+    - uses: publiccodeyml/bot@v1
       with:
-        repo: "italia/publiccode-parser-action"
+        username: yaml-9000
 ```
 
 ## Build the action
@@ -55,8 +78,6 @@ npm run build
 Contributing is always appreciated.
 Feel free to open issues, fork or submit a Pull Request.
 If you want to know more about how to add new fields, check out [CONTRIBUTING.md](CONTRIBUTING.md).
-In order to support other country-specific extensions in addition to Italy some
-refactoring might be needed.
 
 ## Maintainers
 

@@ -1,24 +1,18 @@
 name: 'Action name'
 description: 'Action description'
-author: 'italia'
 
 inputs:
   github_token:
     description: 'GITHUB_TOKEN'
+    required: false
     default: '${{ github.token }}'
-  repo:
-    description: 'GitHub repository. e.g. italia/publiccode-parser-action'
-    default: '${{ github.repository }}'
-    required: true
-
-outputs:
-  stars:
-    description: 'The stars of the repository'
-  license:
-    description: 'The license used in the repository'
+  username:
+    description: The username of the bot
+    required: false
+    default: bot
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 
 branding:

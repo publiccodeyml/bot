@@ -1,22 +1,13 @@
-name: Test
 on:
-  push:
-    branches:
-      - master
   pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Get Stars and License
-        uses: ./
-        id: sample
+      - uses: actions/setup-node@master
         with:
-          repo: "italia/publiccode-parser-action"
-      - name: Check Stars and License
-        run: |
-          test -n "${{ steps.sample.outputs.stars }}"
-          echo "${{ steps.sample.outputs.stars }}"
-          test -n "${{ steps.sample.outputs.license }}"
-          echo "${{ steps.sample.outputs.license }}"
+          node-version: 16.x
+      - run: npm ci
+      - run: npm run test
