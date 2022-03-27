@@ -1,5 +1,5 @@
-name: 'Action name'
-description: 'Action description'
+name: 'publiccode.yml bot'
+description: 'The bot automating the publiccodeyml organization procedures'
 
 inputs:
   github_token:
