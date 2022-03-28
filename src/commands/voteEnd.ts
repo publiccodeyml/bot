@@ -132,7 +132,9 @@ export default async function run(context: Context) {
   let result_message = '';
   const vote_details_notes: string [] = [];
 
-  const labels = await removeLabel(context, 'vote-start');
+  await removeLabel(context, 'vote-start');
+
+  const labels = await octokit.issues.listLabelsOnIssue({ owner, repo, issue_number });
 
   const approvingMember = nationalSectionApprovingMember(labels?.data, comments);
 

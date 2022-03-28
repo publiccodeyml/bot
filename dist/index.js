@@ -9343,7 +9343,8 @@ function run(context) {
         const thumbsDownsTags = thumbsDowns.map(r => { var _a; return `@${(_a = r.user) === null || _a === void 0 ? void 0 : _a.login}`; });
         let result_message = '';
         const vote_details_notes = [];
-        const labels = yield (0, bot_1.removeLabel)(context, 'vote-start');
+        yield (0, bot_1.removeLabel)(context, 'vote-start');
+        const labels = yield octokit_1.default.issues.listLabelsOnIssue({ owner, repo, issue_number });
         const approvingMember = nationalSectionApprovingMember(labels === null || labels === void 0 ? void 0 : labels.data, comments);
         const isAdditionalPeriod = labels === null || labels === void 0 ? void 0 : labels.data.find(l => l.name === 'vote-additional-period');
         if (isAdditionalPeriod) {
