@@ -5,4 +5,6 @@ this means that old versions of `publiccode.yml` will still be valid with this c
 
 Example of minor changes are additions of new keys or making keys optional.
 
+The Chair will eventually pick up this proposal and start the voting procedure using `@{{ bot_username }} vote-start`
+
 cc {{ chair_tag }} @{{{ steering_committee_team }}}
