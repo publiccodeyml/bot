@@ -9347,21 +9347,21 @@ function run(context) {
         const approvingMember = nationalSectionApprovingMember(labels === null || labels === void 0 ? void 0 : labels.data, comments);
         const isAdditionalPeriod = labels === null || labels === void 0 ? void 0 : labels.data.find(l => l.name === 'vote-additional-period');
         if (isAdditionalPeriod) {
-            vote_details_notes.push("**Second round**: at least **75%** approve votes needed");
+            vote_details_notes.push("<strong>Second round</strong>: at least <strong>75%</strong> approve votes needed");
         }
         if (approvingMember) {
-            vote_details_notes.push(`**National section vote**: approve vote by ${approvingMember} required and at least **50%** approve votes`);
+            vote_details_notes.push(`<strong>National section vote</strong>: approve vote by ${approvingMember} required and at least <strong>50%</strong> approve votes`);
         }
         else if (!isAdditionalPeriod) {
-            vote_details_notes.push("**First round**: unanimity required");
+            vote_details_notes.push("<strong>First round</strong>: unanimity required");
         }
         const voteResults = processResults(thumbsUps.map(t => t.user.login), thumbsDowns.map(t => t.user.login), !isAdditionalPeriod, approvingMember);
         switch (+voteResults) {
             case VoteResult.Approved:
                 result_message = `
-        **Proposal approved** :+1:
+**Proposal approved** :+1:
 
-        This proposal is now ready to be merged and get released with a new version of the standard.
+This proposal is now ready to be merged and get released with a new version of the standard.
       `;
                 yield (0, bot_1.removeLabel)(context, 'vote-rejected');
                 yield (0, bot_1.addLabels)(context, ['vote-approved']);
@@ -9373,18 +9373,18 @@ function run(context) {
                 break;
             case VoteResult.AdditionalPeriod:
                 result_message = `
-        **No unanimity**
+**No unanimity**
 
-        This proposal can be put to vote again in 90 days
+This proposal can be put to vote again in 90 days (using \`${config_1.BOT_USERNAME} vote-start\`)
       `;
                 yield (0, bot_1.addLabels)(context, ['vote-additional-period']);
                 break;
             default:
         }
         result_message = `
-    ${result_message}
+${result_message}
 
-    cc ${config_1.CHAIR_TAG} @${config_1.MAINTAINERS_TEAM}
+cc ${config_1.CHAIR_TAG} @${config_1.MAINTAINERS_TEAM}
   `;
         const vars = {
             vote_thumbs_ups_tags: thumbsUpsTags.join(' '),
@@ -9394,7 +9394,7 @@ function run(context) {
             vote_thumbs_ups_percentage: formatPercentage(100 * thumbsUps.length / votesCount),
             vote_thumbs_downs_percentage: formatPercentage(100 * thumbsDowns.length / votesCount),
             vote_comment_link: voteComment.html_url,
-            vote_details_users: reactions.data.map(r => { var _a; return `${(_a = r.user) === null || _a === void 0 ? void 0 : _a.login} voted :${r.content}:`; }).join('\n\n'),
+            vote_details_users: reactions.data.map(r => { var _a; return `- <strong>${(_a = r.user) === null || _a === void 0 ? void 0 : _a.login}</strong> voted :${r.content}:`; }).join('\n\n'),
             vote_details_notes: vote_details_notes.join('\n\n'),
             result_message,
         };

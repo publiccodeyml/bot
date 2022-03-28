@@ -139,14 +139,14 @@ export default async function run(context: Context) {
   const isAdditionalPeriod = labels?.data.find(l => (l.name as Label) === 'vote-additional-period');
 
   if (isAdditionalPeriod) {
-    vote_details_notes.push("**Second round**: at least **75%** approve votes needed");
+    vote_details_notes.push("<strong>Second round</strong>: at least <strong>75%</strong> approve votes needed");
   }
   if (approvingMember) {
     vote_details_notes.push(
-      `**National section vote**: approve vote by ${approvingMember} required and at least **50%** approve votes`
+      `<strong>National section vote</strong>: approve vote by ${approvingMember} required and at least <strong>50%</strong> approve votes`
     );
   } else if (!isAdditionalPeriod) {
-    vote_details_notes.push("**First round**: unanimity required");
+    vote_details_notes.push("<strong>First round</strong>: unanimity required");
   }
 
   const voteResults = processResults(
@@ -159,9 +159,9 @@ export default async function run(context: Context) {
   switch (+voteResults) {
     case VoteResult.Approved:
       result_message = `
-        **Proposal approved** :+1:
+**Proposal approved** :+1:
 
-        This proposal is now ready to be merged and get released with a new version of the standard.
+This proposal is now ready to be merged and get released with a new version of the standard.
       `;
 
       await removeLabel(context, 'vote-rejected');
@@ -177,9 +177,9 @@ export default async function run(context: Context) {
       break;
     case VoteResult.AdditionalPeriod:
       result_message = `
-        **No unanimity**
+**No unanimity**
 
-        This proposal can be put to vote again in 90 days
+This proposal can be put to vote again in 90 days (using \`${BOT_USERNAME} vote-start\`)
       `;
       await addLabels(context, ['vote-additional-period']);
 
@@ -188,9 +188,9 @@ export default async function run(context: Context) {
   }
 
   result_message = `
-    ${result_message}
+${result_message}
 
-    cc ${CHAIR_TAG} @${MAINTAINERS_TEAM}
+cc ${CHAIR_TAG} @${MAINTAINERS_TEAM}
   `;
 
   const vars = {
@@ -201,7 +201,7 @@ export default async function run(context: Context) {
     vote_thumbs_ups_percentage: formatPercentage(100 * thumbsUps.length / votesCount),
     vote_thumbs_downs_percentage: formatPercentage(100 * thumbsDowns.length / votesCount),
     vote_comment_link: voteComment.html_url,
-    vote_details_users: reactions.data.map(r => `${r.user?.login} voted :${r.content}:`).join('\n\n'),
+    vote_details_users: reactions.data.map(r => `- <strong>${r.user?.login}</strong> voted :${r.content}:`).join('\n\n'),
     vote_details_notes: vote_details_notes.join('\n\n'),
     result_message,
   };
