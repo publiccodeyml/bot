@@ -9335,7 +9335,7 @@ function run(context) {
             repo,
             comment_id: voteComment.id,
         });
-        const members = (yield octokit_1.default.teams.listMembersInOrg({ org: owner, team_slug: 'steering-committee' })).data.map(m => m.login);
+        const members = (yield octokit_1.default.teams.listMembersInOrg({ org: 'publiccodeyml', team_slug: 'steering-committee' })).data.map(m => m.login);
         const thumbsUps = reactions.data.filter(r => { var _a, _b; return r.content === '+1' && members.includes((_b = (_a = r.user) === null || _a === void 0 ? void 0 : _a.login) !== null && _b !== void 0 ? _b : ''); });
         const thumbsDowns = reactions.data.filter(r => { var _a, _b; return r.content === '-1' && members.includes((_b = (_a = r.user) === null || _a === void 0 ? void 0 : _a.login) !== null && _b !== void 0 ? _b : ''); });
         const votesCount = thumbsDowns.length + thumbsUps.length;

@@ -120,7 +120,7 @@ export default async function run(context: Context) {
     comment_id: voteComment.id,
   });
 
-  const members = (await octokit.teams.listMembersInOrg({ org: owner, team_slug: 'steering-committee' })).data.map(m => m.login);
+  const members = (await octokit.teams.listMembersInOrg({ org: 'publiccodeyml', team_slug: 'steering-committee' })).data.map(m => m.login);
 
   const thumbsUps = reactions.data.filter(r => r.content === '+1' && members.includes(r.user?.login ?? ''));
   const thumbsDowns = reactions.data.filter(r => r.content === '-1' && members.includes(r.user?.login ?? ''));
