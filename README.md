@@ -26,6 +26,10 @@ and PR comments followed by the command.
 
   Aliases: `bugfix`, `patch`
 
+* `@yaml-9000 deprecation-change`: Mark the proposal as a [change deprecating something in the Standard](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#proposing-changes)
+
+  Aliases: `deprecation`
+
 * `@yaml-9000 national-section`: Mark the proposal as a [change in the national section](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#country-specific-sections) ([doc](https://yml.publiccode.tools/country.html))
 
   Aliases: `national`, `country-section`, `country`, `country-specific`
