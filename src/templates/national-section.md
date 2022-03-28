@@ -4,4 +4,4 @@ This is now marked as a national section change to the Standard and it will requ
 
 [National section rules](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#country-specific-sections)
 
-cc @{{ nation_member }} {{ chair_tag }} @{{{ steering_committee_team }}}
+cc {{ chair_tag }} @{{{ steering_committee_team }}}
