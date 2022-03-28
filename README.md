@@ -30,7 +30,9 @@ and PR comments followed by the command.
 
   Aliases: `deprecation`
 
-* `@yaml-9000 national-section`: Mark the proposal as a [change in the national section](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#country-specific-sections) ([doc](https://yml.publiccode.tools/country.html))
+* `@yaml-9000 national-section USERNAME`: Mark the proposal as a [change in the national section](https://github.com/publiccodeyml/publiccode.yml/blob/main/governance/procedure-proposing-changes-and-voting.md#country-specific-sections) ([doc](https://yml.publiccode.tools/country.html)).
+
+  It needs the `USERNAME` of the Steering Commitee Member Steering representing that Country as an argument (fe. `@yaml-9000 national-section mickey`).
 
   Aliases: `national`, `country-section`, `country`, `country-specific`
 
