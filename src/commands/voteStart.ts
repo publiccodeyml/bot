@@ -8,7 +8,7 @@ export default async function run(context: Context) {
   const template = readFileSync(__dirname + '/../templates/vote-start.md', 'utf8');
 
   reactToComment(context);
-  addLabels(context, ['standard-breaking-change']);
+  addLabels(context, ['vote-start']);
 
   const date = new Date();
   date.setDate(date.getDate() + VOTE_PERIOD_DAYS);

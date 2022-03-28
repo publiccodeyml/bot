@@ -9428,7 +9428,7 @@ function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "vote-start.md", 'utf8');
         (0, bot_1.reactToComment)(context);
-        (0, bot_1.addLabels)(context, ['standard-breaking-change']);
+        (0, bot_1.addLabels)(context, ['vote-start']);
         const date = new Date();
         date.setDate(date.getDate() + config_1.VOTE_PERIOD_DAYS);
         const vars = {
