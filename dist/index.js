@@ -9499,10 +9499,10 @@ function run() {
             console.error(`Skipping bot comment in message ${comment.html_url}`);
             return;
         }
-        // if (!await isMaintainer(org, commenter) && commenter !== chair_tag.replace('@', '')) {
-        //   console.log(`User '${commenter}' can't run commands in message ${comment.html_url}, exiting`);
-        //   return;
-        // }
+        if (!(yield (0, bot_1.isMaintainer)(github_1.context.repo.owner, commenter)) && commenter !== config_1.CHAIR_TAG.replace('@', '')) {
+            console.log(`User '${commenter}' can't run commands in message ${comment.html_url}, exiting`);
+            return;
+        }
         const commands = (0, bot_1.getCommandsFromComment)(comment.body);
         if (commands.length === 0) {
             console.log(`No commands in message ${comment.html_url}`);

@@ -1,7 +1,7 @@
 import { context } from '@actions/github';
 import { Context } from '@actions/github/lib/context';
 
-import { getCommandsFromComment } from './bot';
+import { getCommandsFromComment, isMaintainer } from './bot';
 import { runCommand } from './commands';
 import { BOT_USERNAME, CHAIR_TAG } from './config';
 
@@ -24,10 +24,10 @@ async function run() {
     return;
   }
 
-  // if (!await isMaintainer(org, commenter) && commenter !== chair_tag.replace('@', '')) {
-  //   console.log(`User '${commenter}' can't run commands in message ${comment.html_url}, exiting`);
-  //   return;
-  // }
+  if (!await isMaintainer(context.repo.owner, commenter) && commenter !== CHAIR_TAG.replace('@', '')) {
+    console.log(`User '${commenter}' can't run commands in message ${comment.html_url}, exiting`);
+    return;
+  }
 
   const commands = getCommandsFromComment(comment.body);
   if (commands.length === 0) {
