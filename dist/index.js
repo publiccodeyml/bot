@@ -9453,7 +9453,7 @@ exports.STEERING_COMMITTEE_TEAM = exports.MAINTAINERS_TEAM = exports.CHAIR_TAG =
 const core_1 = __nccwpck_require__(2186);
 exports.VOTE_PERIOD_DAYS = 14;
 exports.BOT_USERNAME = process.env.BOT_USERNAME || (0, core_1.getInput)('username');
-exports.CHAIR_TAG = '@bfabio';
+exports.CHAIR_TAG = '@ruphy';
 exports.MAINTAINERS_TEAM = 'publiccodeyml/maintainers';
 exports.STEERING_COMMITTEE_TEAM = 'publiccodeyml/steering-committee';
 
