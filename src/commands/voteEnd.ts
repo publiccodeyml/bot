@@ -29,6 +29,7 @@ export enum VoteResult {
 
 function getBotComment(comments: Comment[], marker: string): Comment {
   const botComments = comments
+    .reverse()
     .filter(c => c.user?.login === BOT_USERNAME)
     .filter(c => c.body?.startsWith(marker));
 

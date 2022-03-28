@@ -9271,6 +9271,7 @@ var VoteResult;
 ;
 function getBotComment(comments, marker) {
     const botComments = comments
+        .reverse()
         .filter(c => { var _a; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.login) === config_1.BOT_USERNAME; })
         .filter(c => { var _a; return (_a = c.body) === null || _a === void 0 ? void 0 : _a.startsWith(marker); });
     return botComments[0];
