@@ -8,7 +8,7 @@ procedures implemented as a GitHub action.
 The bot is instructed to perform tasks using its tag (fe. @yaml-9000) in issues
 and PR comments followed by the command.
 
-* `@yaml-9000 vote-start`: Open the pools for the voting procedure on the current
+* `@yaml-9000 vote-start`: Open the polls for the voting procedure on the current
   proposal
 
 * `@yaml-9000 vote-end`: End the voting procedure, closing the pools and
