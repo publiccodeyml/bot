@@ -8940,7 +8940,7 @@ exports.getCommandsFromComment = getCommandsFromComment;
 function isMaintainer(org, username) {
     return __awaiter(this, void 0, void 0, function* () {
         const members = yield octokit_1.default.teams.listMembersInOrg({ org, team_slug: 'maintainers' });
-        return members.data.map((m) => m.login).includes(username);
+        return members.data.map(m => m.login).includes(username);
     });
 }
 exports.isMaintainer = isMaintainer;
@@ -8951,59 +8951,12 @@ function reactToComment(context) {
         if (!context.payload.comment) {
             return;
         }
-        const comment_id = (_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.id;
         octokit_1.default.reactions.createForIssueComment({
-            owner: org, repo, comment_id, content: 'rocket',
+            owner: org, repo, comment_id: (_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.id, content: 'rocket',
         });
     });
 }
 exports.reactToComment = reactToComment;
-function commentToIssue(context, template, additionalVariables) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { owner, repo } = context.repo;
-        const issue_number = context.issue.number;
-        const content = mustache_1.default.render(template, Object.assign(Object.assign({}, toMustacheView(context)), additionalVariables));
-        const footerTpl = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "footer.md", 'utf8');
-        const footer = mustache_1.default.render(footerTpl, Object.assign(Object.assign({}, toMustacheView(context)), additionalVariables));
-        const body = `${content}\n${footer}`;
-        octokit_1.default.issues.createComment({ owner, repo, issue_number, body });
-    });
-}
-exports.commentToIssue = commentToIssue;
-function setLabels(context, labels) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { owner, repo } = context.repo;
-        const issue_number = context.issue.number;
-        octokit_1.default.issues.setLabels({ owner, repo, issue_number, labels });
-    });
-}
-exports.setLabels = setLabels;
-function addLabels(context, labels) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { owner, repo } = context.repo;
-        const issue_number = context.issue.number;
-        octokit_1.default.issues.addLabels({ owner, repo, issue_number, labels });
-    });
-}
-exports.addLabels = addLabels;
-function removeLabel(context, name) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { owner, repo } = context.repo;
-        const issue_number = context.issue.number;
-        try {
-            return yield octokit_1.default.issues.removeLabel({ owner, repo, issue_number, name });
-        }
-        catch (e) {
-            // Just log if the label does not exist
-            if (e.status === 404) {
-                console.warn(`404 while removing '${name}' label`);
-                return;
-            }
-            throw (e);
-        }
-    });
-}
-exports.removeLabel = removeLabel;
 function toMustacheView(context) {
     var _a, _b, _c;
     return {
@@ -9014,6 +8967,60 @@ function toMustacheView(context) {
         comment_author_username: (_c = (_b = (_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.login) !== null && _c !== void 0 ? _c : '',
     };
 }
+function commentToIssue(context, template, additionalVariables) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { owner, repo } = context.repo;
+        const content = mustache_1.default.render(template, Object.assign(Object.assign({}, toMustacheView(context)), additionalVariables));
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
+        const footerTpl = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "footer.md", 'utf8');
+        const footer = mustache_1.default.render(footerTpl, Object.assign(Object.assign({}, toMustacheView(context)), additionalVariables));
+        const body = `${content}\n${footer}`;
+        octokit_1.default.issues.createComment({
+            owner, repo, issue_number: context.issue.number, body,
+        });
+    });
+}
+exports.commentToIssue = commentToIssue;
+function setLabels(context, labels) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { owner, repo } = context.repo;
+        octokit_1.default.issues.setLabels({
+            owner, repo, issue_number: context.issue.number, labels,
+        });
+    });
+}
+exports.setLabels = setLabels;
+function addLabels(context, labels) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { owner, repo } = context.repo;
+        octokit_1.default.issues.addLabels({
+            owner, repo, issue_number: context.issue.number, labels,
+        });
+    });
+}
+exports.addLabels = addLabels;
+function removeLabel(context, name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { owner, repo } = context.repo;
+        try {
+            return yield octokit_1.default.issues.removeLabel({
+                owner, repo, issue_number: context.issue.number, name,
+            });
+        }
+        catch (e) {
+            // Just log if the label does not exist
+            if (e.status === 404) {
+                console.warn(`404 while removing '${name}' label`);
+                return [];
+            }
+            throw (e);
+        }
+    });
+}
+exports.removeLabel = removeLabel;
 
 
 /***/ }),
@@ -9037,6 +9044,10 @@ const fs_1 = __nccwpck_require__(7147);
 const bot_1 = __nccwpck_require__(8104);
 function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "breaking-change.md", 'utf8');
         (0, bot_1.reactToComment)(context);
         (0, bot_1.addLabels)(context, ['standard-breaking-change', 'vote-draft']);
@@ -9067,6 +9078,10 @@ const fs_1 = __nccwpck_require__(7147);
 const bot_1 = __nccwpck_require__(8104);
 function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "bugfix-change.md", 'utf8');
         (0, bot_1.reactToComment)(context);
         (0, bot_1.addLabels)(context, ['standard-bugfix-change', 'vote-draft']);
@@ -9097,6 +9112,10 @@ const fs_1 = __nccwpck_require__(7147);
 const bot_1 = __nccwpck_require__(8104);
 function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "deprecation-change.md", 'utf8');
         (0, bot_1.reactToComment)(context);
         (0, bot_1.addLabels)(context, ['standard-deprecation', 'vote-draft']);
@@ -9156,12 +9175,12 @@ function runCommand(context, command) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Running '${command.command}' command for comment ${(_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.html_url} ...`);
-        const c = exports.commandList.find(c => c.name === command.command);
-        if (!c) {
+        const cmd = exports.commandList.find(c => c.name === command.command);
+        if (!cmd) {
             console.log(`Unknown command '${command.command}'`);
             return;
         }
-        yield c.fn(context, command.args);
+        yield cmd.fn(context, command.args);
     });
 }
 exports.runCommand = runCommand;
@@ -9188,6 +9207,10 @@ const fs_1 = __nccwpck_require__(7147);
 const bot_1 = __nccwpck_require__(8104);
 function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "minor-change.md", 'utf8');
         (0, bot_1.reactToComment)(context);
         (0, bot_1.addLabels)(context, ['standard-minor-change', 'vote-draft']);
@@ -9218,8 +9241,12 @@ const fs_1 = __nccwpck_require__(7147);
 const bot_1 = __nccwpck_require__(8104);
 function run(context, args) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "national-section.md", 'utf8');
-        if ((args === null || args === void 0 ? void 0 : args.length) != 1) {
+        if ((args === null || args === void 0 ? void 0 : args.length) !== 1) {
             console.log('"national-section" command must have one argument');
             console.log('(the username of the committee member for that nation)');
             return;
@@ -9267,7 +9294,6 @@ var VoteResult;
     VoteResult[VoteResult["Rejected"] = 1] = "Rejected";
     VoteResult[VoteResult["AdditionalPeriod"] = 2] = "AdditionalPeriod";
 })(VoteResult = exports.VoteResult || (exports.VoteResult = {}));
-;
 function getBotComment(comments, marker) {
     const botComments = comments
         .reverse()
@@ -9312,19 +9338,23 @@ function nationalSectionApprovingMember(labels, comments) {
     if (isNationalSection) {
         const nationalSectionComment = getBotComment(comments, '<!-- ##bot-national-section-marker## ');
         if (!nationalSectionComment) {
-            return;
+            return undefined;
         }
         return (_b = (_a = nationalSectionComment.body) === null || _a === void 0 ? void 0 : _a.match(/<!-- ##bot-national-section-marker## "(.+)" -->/)) === null || _b === void 0 ? void 0 : _b[1];
     }
-    return;
+    return undefined;
 }
-const formatPercentage = (percentage) => percentage ? `${percentage.toFixed(1)}%` : '-';
+const formatPercentage = (percentage) => (percentage ? `${percentage.toFixed(1)}%` : '-');
 function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "vote-end.md", 'utf8');
         (0, bot_1.reactToComment)(context);
-        const { owner, repo, number: issue_number } = context.issue;
-        const comments = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues/:issue_number/comments', { owner, repo, issue_number });
+        const { owner, repo, number } = context.issue;
+        const comments = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues/:issue_number/comments', { owner, repo, issue_number: number });
         const voteComment = getBotComment(comments, '<!-- ##bot-voting-marker## -->');
         if (!voteComment) {
             console.error('Can\'t find the bot comment where the voting is taking place');
@@ -9341,25 +9371,25 @@ function run(context) {
         const votesCount = thumbsDowns.length + thumbsUps.length;
         const thumbsUpsTags = thumbsUps.map(r => { var _a; return `@${(_a = r.user) === null || _a === void 0 ? void 0 : _a.login}`; });
         const thumbsDownsTags = thumbsDowns.map(r => { var _a; return `@${(_a = r.user) === null || _a === void 0 ? void 0 : _a.login}`; });
-        let result_message = '';
-        const vote_details_notes = [];
+        let resultMessage = '';
+        const voteDetailsNotes = [];
         yield (0, bot_1.removeLabel)(context, 'vote-start');
-        const labels = yield octokit_1.default.issues.listLabelsOnIssue({ owner, repo, issue_number });
+        const labels = yield octokit_1.default.issues.listLabelsOnIssue({ owner, repo, issue_number: number });
         const approvingMember = nationalSectionApprovingMember(labels === null || labels === void 0 ? void 0 : labels.data, comments);
         const isAdditionalPeriod = labels === null || labels === void 0 ? void 0 : labels.data.find(l => l.name === 'vote-additional-period');
         if (isAdditionalPeriod) {
-            vote_details_notes.push("<strong>Second round</strong>: at least <strong>75%</strong> approve votes needed");
+            voteDetailsNotes.push('<strong>Second round</strong>: at least <strong>75%</strong> approve votes needed');
         }
         if (approvingMember) {
-            vote_details_notes.push(`<strong>National section vote</strong>: approve vote by ${approvingMember} required and at least <strong>50%</strong> approve votes`);
+            voteDetailsNotes.push(`<strong>National section vote</strong>: approve vote by ${approvingMember} required and at least <strong>50%</strong> approve votes`);
         }
         else if (!isAdditionalPeriod) {
-            vote_details_notes.push("<strong>First round</strong>: unanimity required");
+            voteDetailsNotes.push('<strong>First round</strong>: unanimity required');
         }
         const voteResults = processResults(thumbsUps.map(t => t.user.login), thumbsDowns.map(t => t.user.login), !isAdditionalPeriod, approvingMember);
         switch (+voteResults) {
             case VoteResult.Approved:
-                result_message = `
+                resultMessage = `
 **Proposal approved** :+1:
 
 This proposal is now ready to be merged and get released with a new version of the standard.
@@ -9368,36 +9398,36 @@ This proposal is now ready to be merged and get released with a new version of t
                 yield (0, bot_1.addLabels)(context, ['vote-approved']);
                 break;
             case VoteResult.Rejected:
-                result_message = '**Proposal rejected** :-1:';
+                resultMessage = '**Proposal rejected** :-1:';
                 yield (0, bot_1.removeLabel)(context, 'vote-approved');
                 yield (0, bot_1.addLabels)(context, ['vote-rejected']);
                 break;
             case VoteResult.AdditionalPeriod:
-                result_message = `
+                resultMessage = `
 **No unanimity**
 
 This proposal can be put to vote again in 90 days (using \`${config_1.BOT_USERNAME} vote-start\`)
-      `;
+`;
                 yield (0, bot_1.addLabels)(context, ['vote-additional-period']);
                 break;
             default:
         }
-        result_message = `
-${result_message}
+        resultMessage = `
+${resultMessage}
 
 cc ${config_1.CHAIR_TAG} @${config_1.MAINTAINERS_TEAM}
-  `;
+`;
         const vars = {
             vote_thumbs_ups_tags: thumbsUpsTags.join(' '),
             vote_thumbs_ups_count: thumbsUps.length.toString(),
             vote_thumbs_downs_tags: thumbsDownsTags.join(' '),
             vote_thumbs_downs_count: thumbsDowns.length.toString(),
-            vote_thumbs_ups_percentage: formatPercentage(100 * thumbsUps.length / votesCount),
-            vote_thumbs_downs_percentage: formatPercentage(100 * thumbsDowns.length / votesCount),
+            vote_thumbs_ups_percentage: formatPercentage((100 * thumbsUps.length) / votesCount),
+            vote_thumbs_downs_percentage: formatPercentage((100 * thumbsDowns.length) / votesCount),
             vote_comment_link: voteComment.html_url,
             vote_details_users: reactions.data.map(r => { var _a; return `- <strong>${(_a = r.user) === null || _a === void 0 ? void 0 : _a.login}</strong> voted :${r.content}:`; }).join('\n\n'),
-            vote_details_notes: vote_details_notes.join('\n\n'),
-            result_message,
+            vote_details_notes: voteDetailsNotes.join('\n\n'),
+            result_message: resultMessage,
         };
         yield (0, bot_1.commentToIssue)(context, template, vars);
     });
@@ -9427,6 +9457,10 @@ const config_1 = __nccwpck_require__(6373);
 const bot_1 = __nccwpck_require__(8104);
 function run(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        // We need ncc to detect the concatenation and include the template file
+        // in the build
+        //
+        // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "vote-start.md", 'utf8');
         (0, bot_1.reactToComment)(context);
         (0, bot_1.addLabels)(context, ['vote-start']);
@@ -9484,14 +9518,14 @@ function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         // TODO: Check for github.context.eventName == 'issue_comment'
-        const comment = github_1.context.payload.comment;
+        const { comment } = github_1.context.payload;
         if (!comment) {
             console.error('No comment object found');
             return;
         }
         const commenter = (_a = comment.user) === null || _a === void 0 ? void 0 : _a.login;
         if (!commenter) {
-            console.error(`Can\'t get commenter username in message ${comment.html_url}`);
+            console.error(`Can't get commenter username in message ${comment.html_url}`);
             return;
         }
         if (commenter === config_1.BOT_USERNAME) {
@@ -9507,7 +9541,7 @@ function run() {
             console.log(`No commands in message ${comment.html_url}`);
             return;
         }
-        yield Promise.all(commands.map((cmd) => __awaiter(this, void 0, void 0, function* () { return yield (0, commands_1.runCommand)(github_1.context, cmd); })));
+        yield Promise.all(commands.map((cmd) => __awaiter(this, void 0, void 0, function* () { return (0, commands_1.runCommand)(github_1.context, cmd); })));
     });
 }
 run();

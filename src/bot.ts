@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 import { Context } from '@actions/github/lib/context';
-import { RequestError} from '@octokit/types';
+import { RequestError } from '@octokit/types';
 
 import Mustache from 'mustache';
 
@@ -9,7 +9,7 @@ import {
   BOT_USERNAME,
   CHAIR_TAG,
   MAINTAINERS_TEAM,
-  STEERING_COMMITTEE_TEAM
+  STEERING_COMMITTEE_TEAM,
 } from './config';
 import octokit from './octokit';
 import { LabelName } from './labels';
@@ -39,75 +39,19 @@ export function getCommandsFromComment(body: string): Command[] {
 export async function isMaintainer(org: string, username: string) {
   const members = await octokit.teams.listMembersInOrg({ org, team_slug: 'maintainers' });
 
-  return members.data.map((m) => m.login).includes(username);
+  return members.data.map(m => m.login).includes(username);
 }
 
 export async function reactToComment(context: Context) {
   const { owner: org, repo } = context.repo;
 
   if (!context.payload.comment) {
-    return
+    return;
   }
-  const comment_id = context.payload.comment?.id;
 
   octokit.reactions.createForIssueComment({
-    owner: org, repo, comment_id, content: 'rocket',
+    owner: org, repo, comment_id: context.payload.comment?.id, content: 'rocket',
   });
-}
-
-export async function commentToIssue(
-    context: Context,
-    template: string,
-    additionalVariables?: {[key: string]: string},
-) {
-  const { owner, repo } = context.repo;
-  const issue_number = context.issue.number;
-
-  const content = Mustache.render(template, {
-    ...toMustacheView(context),
-    ...additionalVariables,
-  });
-
-  const footerTpl = readFileSync(__dirname + '/templates/footer.md', 'utf8')
-  const footer = Mustache.render(footerTpl, {
-    ...toMustacheView(context),
-    ...additionalVariables,
-  });
-
-  const body = `${content}\n${footer}`;
-
-  octokit.issues.createComment({owner, repo, issue_number, body});
-}
-
-export async function setLabels(context: Context, labels: LabelName[]) {
-  const { owner, repo } = context.repo;
-  const issue_number = context.issue.number;
-
-  octokit.issues.setLabels({owner, repo, issue_number, labels});
-}
-
-export async function addLabels(context: Context, labels: LabelName[]) {
-  const { owner, repo } = context.repo;
-  const issue_number = context.issue.number;
-
-  octokit.issues.addLabels({owner, repo, issue_number, labels});
-}
-
-export async function removeLabel(context: Context, name: LabelName) {
-  const { owner, repo } = context.repo;
-  const issue_number = context.issue.number;
-
-  try {
-    return await octokit.issues.removeLabel({owner, repo, issue_number, name});
-  } catch (e) {
-    // Just log if the label does not exist
-    if ((e as RequestError).status === 404) {
-      console.warn(`404 while removing '${name}' label`);
-      return;
-    }
-
-    throw(e);
-  }
 }
 
 function toMustacheView(context: Context): TemplateVariables {
@@ -117,5 +61,68 @@ function toMustacheView(context: Context): TemplateVariables {
     maintainers_team: MAINTAINERS_TEAM,
     steering_committee_team: STEERING_COMMITTEE_TEAM,
     comment_author_username: context.payload.comment?.user?.login ?? '',
+  };
+}
+
+export async function commentToIssue(
+  context: Context,
+  template: string,
+  additionalVariables?: { [key: string]: string },
+) {
+  const { owner, repo } = context.repo;
+
+  const content = Mustache.render(template, {
+    ...toMustacheView(context),
+    ...additionalVariables,
+  });
+
+  // We need ncc to detect the concatenation and include the template file
+  // in the build
+  //
+  // eslint-disable-next-line prefer-template,no-path-concat
+  const footerTpl = readFileSync(__dirname + '/templates/footer.md', 'utf8');
+  const footer = Mustache.render(footerTpl, {
+    ...toMustacheView(context),
+    ...additionalVariables,
+  });
+
+  const body = `${content}\n${footer}`;
+
+  octokit.issues.createComment({
+    owner, repo, issue_number: context.issue.number, body,
+  });
+}
+
+export async function setLabels(context: Context, labels: LabelName[]) {
+  const { owner, repo } = context.repo;
+
+  octokit.issues.setLabels({
+    owner, repo, issue_number: context.issue.number, labels,
+  });
+}
+
+export async function addLabels(context: Context, labels: LabelName[]) {
+  const { owner, repo } = context.repo;
+
+  octokit.issues.addLabels({
+    owner, repo, issue_number: context.issue.number, labels,
+  });
+}
+
+export async function removeLabel(context: Context, name: LabelName) {
+  const { owner, repo } = context.repo;
+
+  try {
+    return await octokit.issues.removeLabel({
+      owner, repo, issue_number: context.issue.number, name,
+    });
+  } catch (e) {
+    // Just log if the label does not exist
+    if ((e as RequestError).status === 404) {
+      console.warn(`404 while removing '${name}' label`);
+      return [];
+    }
+
+    throw (e);
   }
 }

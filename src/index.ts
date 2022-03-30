@@ -1,5 +1,4 @@
 import { context } from '@actions/github';
-import { Context } from '@actions/github/lib/context';
 
 import { getCommandsFromComment, isMaintainer } from './bot';
 import { runCommand } from './commands';
@@ -8,14 +7,14 @@ import { BOT_USERNAME, CHAIR_TAG } from './config';
 async function run() {
   // TODO: Check for github.context.eventName == 'issue_comment'
 
-  const comment = context.payload.comment;
+  const { comment } = context.payload;
   if (!comment) {
     console.error('No comment object found');
     return;
   }
   const commenter = comment.user?.login;
   if (!commenter) {
-    console.error(`Can\'t get commenter username in message ${comment.html_url}`);
+    console.error(`Can't get commenter username in message ${comment.html_url}`);
     return;
   }
 
@@ -35,7 +34,7 @@ async function run() {
     return;
   }
 
-  await Promise.all(commands.map(async (cmd) => await runCommand(context, cmd)));
+  await Promise.all(commands.map(async cmd => runCommand(context, cmd)));
 }
 
 run();
