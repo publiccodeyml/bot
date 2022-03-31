@@ -5,6 +5,10 @@ import { VOTE_PERIOD_DAYS } from '../config';
 import { reactToComment, commentToIssue, addLabels } from '../bot';
 
 export default async function run(context: Context) {
+  // We need ncc to detect the concatenation and include the template file
+  // in the build
+  //
+  // eslint-disable-next-line prefer-template,no-path-concat
   const template = readFileSync(__dirname + '/../templates/vote-start.md', 'utf8');
 
   reactToComment(context);

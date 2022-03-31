@@ -44,11 +44,11 @@ export const commandList: CommandMap[] = [
 export async function runCommand(context: Context, command: Command) {
   console.log(`Running '${command.command}' command for comment ${context.payload.comment?.html_url} ...`);
 
-  const c = commandList.find(c => c.name === command.command);
-  if (!c) {
+  const cmd = commandList.find(c => c.name === command.command);
+  if (!cmd) {
     console.log(`Unknown command '${command.command}'`);
     return;
   }
 
-  await c.fn(context, command.args);
+  await cmd.fn(context, command.args);
 }
