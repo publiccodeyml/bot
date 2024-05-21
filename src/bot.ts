@@ -7,7 +7,7 @@ import Mustache from 'mustache';
 
 import {
   BOT_USERNAME,
-  CHAIR_TAG,
+  CHAIR_TEAM,
   MAINTAINERS_TEAM,
   STEERING_COMMITTEE_TEAM,
 } from './config';
@@ -15,7 +15,7 @@ import octokit from './octokit';
 import { LabelName } from './labels';
 
 interface TemplateVariables {
-  chair_tag: string;
+  chair_team: string;
   maintainers_team: string;
   steering_committee_team: string;
   bot_username: string;
@@ -36,10 +36,18 @@ export function getCommandsFromComment(body: string): Command[] {
     .map(e => ({ command: e.split(/\s+/).slice(0, 1)[0]!, args: e.split(/\s+/).slice(1) }));
 }
 
-export async function isMaintainer(org: string, username: string) {
-  const members = await octokit.teams.listMembersInOrg({ org, team_slug: 'maintainers' });
+export async function inTeam(org: string, username: string, team: string) {
+  const members = await octokit.teams.listMembersInOrg({ org, team_slug: team });
 
   return members.data.map(m => m.login).includes(username);
+}
+
+export async function isMaintainer(org: string, username: string) {
+  return inTeam(org, username, 'maintainers');
+}
+
+export async function isChair(org: string, username: string) {
+  return inTeam(org, username, 'chair');
 }
 
 export async function reactToComment(context: Context) {
@@ -57,7 +65,7 @@ export async function reactToComment(context: Context) {
 function toMustacheView(context: Context): TemplateVariables {
   return {
     bot_username: BOT_USERNAME,
-    chair_tag: CHAIR_TAG,
+    chair_team: CHAIR_TEAM,
     maintainers_team: MAINTAINERS_TEAM,
     steering_committee_team: STEERING_COMMITTEE_TEAM,
     comment_author_username: context.payload.comment?.user?.login ?? '',

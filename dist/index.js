@@ -8923,7 +8923,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.removeLabel = exports.addLabels = exports.setLabels = exports.commentToIssue = exports.reactToComment = exports.isMaintainer = exports.getCommandsFromComment = void 0;
+exports.removeLabel = exports.addLabels = exports.setLabels = exports.commentToIssue = exports.reactToComment = exports.isChair = exports.isMaintainer = exports.inTeam = exports.getCommandsFromComment = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const mustache_1 = __importDefault(__nccwpck_require__(8272));
 const config_1 = __nccwpck_require__(6373);
@@ -8937,13 +8937,25 @@ function getCommandsFromComment(body) {
         .map(e => ({ command: e.split(/\s+/).slice(0, 1)[0], args: e.split(/\s+/).slice(1) }));
 }
 exports.getCommandsFromComment = getCommandsFromComment;
-function isMaintainer(org, username) {
+function inTeam(org, username, team) {
     return __awaiter(this, void 0, void 0, function* () {
-        const members = yield octokit_1.default.teams.listMembersInOrg({ org, team_slug: 'maintainers' });
+        const members = yield octokit_1.default.teams.listMembersInOrg({ org, team_slug: team });
         return members.data.map(m => m.login).includes(username);
     });
 }
+exports.inTeam = inTeam;
+function isMaintainer(org, username) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return inTeam(org, username, 'maintainers');
+    });
+}
 exports.isMaintainer = isMaintainer;
+function isChair(org, username) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return inTeam(org, username, 'chair');
+    });
+}
+exports.isChair = isChair;
 function reactToComment(context) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -8961,7 +8973,7 @@ function toMustacheView(context) {
     var _a, _b, _c;
     return {
         bot_username: config_1.BOT_USERNAME,
-        chair_tag: config_1.CHAIR_TAG,
+        chair_team: config_1.CHAIR_TEAM,
         maintainers_team: config_1.MAINTAINERS_TEAM,
         steering_committee_team: config_1.STEERING_COMMITTEE_TEAM,
         comment_author_username: (_c = (_b = (_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.login) !== null && _c !== void 0 ? _c : '',
@@ -9415,7 +9427,7 @@ This proposal can be put to vote again in 90 days (using \`${config_1.BOT_USERNA
         resultMessage = `
 ${resultMessage}
 
-cc ${config_1.CHAIR_TAG} @${config_1.MAINTAINERS_TEAM}
+cc @${config_1.CHAIR_TEAM} @${config_1.MAINTAINERS_TEAM}
 `;
         const vars = {
             vote_thumbs_ups_tags: thumbsUpsTags.join(' '),
@@ -9484,11 +9496,11 @@ exports["default"] = run;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.STEERING_COMMITTEE_TEAM = exports.MAINTAINERS_TEAM = exports.CHAIR_TAG = exports.BOT_USERNAME = exports.VOTE_PERIOD_DAYS = void 0;
+exports.STEERING_COMMITTEE_TEAM = exports.MAINTAINERS_TEAM = exports.CHAIR_TEAM = exports.BOT_USERNAME = exports.VOTE_PERIOD_DAYS = void 0;
 const core_1 = __nccwpck_require__(2186);
 exports.VOTE_PERIOD_DAYS = 14;
 exports.BOT_USERNAME = process.env.BOT_USERNAME || (0, core_1.getInput)('username');
-exports.CHAIR_TAG = '@ruphy';
+exports.CHAIR_TEAM = 'publiccodeyml/chair';
 exports.MAINTAINERS_TEAM = 'publiccodeyml/maintainers';
 exports.STEERING_COMMITTEE_TEAM = 'publiccodeyml/steering-committee';
 
@@ -9532,7 +9544,8 @@ function run() {
             console.error(`Skipping bot comment in message ${comment.html_url}`);
             return;
         }
-        if (!(yield (0, bot_1.isMaintainer)(github_1.context.repo.owner, commenter)) && commenter !== config_1.CHAIR_TAG.replace('@', '')) {
+        if (!(yield (0, bot_1.isMaintainer)(github_1.context.repo.owner, commenter))
+            && !(yield (0, bot_1.isChair)(github_1.context.repo.owner, commenter))) {
             console.log(`User '${commenter}' can't run commands in message ${comment.html_url}, exiting`);
             return;
         }

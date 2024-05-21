@@ -5,4 +5,4 @@ and it will be possibile to make the definitive change 6 months after the deprec
 
 The Chair will eventually pick up this proposal and start the voting procedure using `@{{ bot_username }} vote-start`
 
-cc {{ chair_tag }} @{{{ steering_committee_team }}}
+cc @{{ chair_team }} @{{{ steering_committee_team }}}

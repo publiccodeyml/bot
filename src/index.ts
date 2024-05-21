@@ -1,8 +1,8 @@
 import { context } from '@actions/github';
 
-import { getCommandsFromComment, isMaintainer } from './bot';
+import { getCommandsFromComment, isChair, isMaintainer } from './bot';
 import { runCommand } from './commands';
-import { BOT_USERNAME, CHAIR_TAG } from './config';
+import { BOT_USERNAME } from './config';
 
 async function run() {
   // TODO: Check for github.context.eventName == 'issue_comment'
@@ -23,7 +23,10 @@ async function run() {
     return;
   }
 
-  if (!await isMaintainer(context.repo.owner, commenter) && commenter !== CHAIR_TAG.replace('@', '')) {
+  if (
+    !await isMaintainer(context.repo.owner, commenter)
+    && !await isChair(context.repo.owner, commenter)
+  ) {
     console.log(`User '${commenter}' can't run commands in message ${comment.html_url}, exiting`);
     return;
   }
