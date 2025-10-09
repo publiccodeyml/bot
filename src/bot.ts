@@ -20,6 +20,7 @@ interface TemplateVariables {
   steering_committee_team: string;
   bot_username: string;
   comment_author_username: string;
+  next_vote_date: string;
 }
 
 export interface Command {
@@ -62,6 +63,26 @@ export async function reactToComment(context: Context) {
   });
 }
 
+function getNextVoteDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+
+  const schedule = [
+    new Date(year, 0 /* Jan */, 30),
+    new Date(year, 4 /* May */, 30),
+    new Date(year, 8 /* Sep */, 30),
+  ];
+
+  const next = schedule.find(d => d > now);
+  const nextDate = next ?? new Date(year + 1, schedule[0]!.getMonth(), schedule[0]!.getDate());
+
+  return nextDate.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 function toMustacheView(context: Context): TemplateVariables {
   return {
     bot_username: BOT_USERNAME,
@@ -69,6 +90,7 @@ function toMustacheView(context: Context): TemplateVariables {
     maintainers_team: MAINTAINERS_TEAM,
     steering_committee_team: STEERING_COMMITTEE_TEAM,
     comment_author_username: context.payload.comment?.user?.login ?? '',
+    next_vote_date: getNextVoteDate(),
   };
 }
 

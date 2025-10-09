@@ -6,6 +6,6 @@ Breaking changes can be released with a new major version at most once every two
 
 Example of breaking changes are removal of keys or changes to key types.
 
-The Chair will eventually pick up this proposal and start the voting procedure using `@{{ bot_username }} vote-start`.
+The next eligible voting round will take place on **{{ next_vote_date }}**
 
-cc @{{ chair_team }} @{{{ steering_committee_team }}}
+cc @{{{ steering_committee_team }}}
