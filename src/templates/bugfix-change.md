@@ -5,6 +5,6 @@ this means that this change won't break any compatibility with the old versions 
 
 Example of bugfix changes are typo fixes.
 
-The Chair will eventually pick up this proposal and start the voting procedure using `@{{ bot_username }} vote-start`.
+The next eligible voting round will take place on **{{ next_vote_date }}**
 
-cc @{{ chair_team }} @{{{ steering_committee_team }}}
+cc @{{{ steering_committee_team }}}

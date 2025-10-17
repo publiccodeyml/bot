@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { Context } from '@actions/github/lib/context';
 import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types';
-import { BOT_USERNAME, CHAIR_TEAM, MAINTAINERS_TEAM } from '../config';
+import { BOT_USERNAME, MAINTAINERS_TEAM } from '../config';
 import {
   reactToComment, commentToIssue, addLabels, removeLabel,
 } from '../bot';
@@ -129,7 +129,7 @@ export default async function run(context: Context) {
   const thumbsDownsTags = thumbsDowns.map(r => `@${r.user?.login}`);
 
   let resultMessage = '';
-  const voteDetailsNotes: string [] = [];
+  const voteDetailsNotes: string[] = [];
 
   await removeLabel(context, 'vote-start');
 
@@ -191,7 +191,7 @@ This proposal can be put to vote again in 90 days (using \`${BOT_USERNAME} vote-
   resultMessage = `
 ${resultMessage}
 
-cc @${CHAIR_TEAM} @${MAINTAINERS_TEAM}
+cc @${MAINTAINERS_TEAM}
 `;
 
   const vars = {

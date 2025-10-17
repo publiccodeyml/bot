@@ -8969,6 +8969,22 @@ function reactToComment(context) {
     });
 }
 exports.reactToComment = reactToComment;
+function getNextVoteDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const schedule = [
+        new Date(year, 0 /* Jan */, 30),
+        new Date(year, 4 /* May */, 30),
+        new Date(year, 8 /* Sep */, 30),
+    ];
+    const next = schedule.find(d => d > now);
+    const nextDate = next !== null && next !== void 0 ? next : new Date(year + 1, schedule[0].getMonth(), schedule[0].getDate());
+    return nextDate.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    });
+}
 function toMustacheView(context) {
     var _a, _b, _c;
     return {
@@ -8977,6 +8993,7 @@ function toMustacheView(context) {
         maintainers_team: config_1.MAINTAINERS_TEAM,
         steering_committee_team: config_1.STEERING_COMMITTEE_TEAM,
         comment_author_username: (_c = (_b = (_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.login) !== null && _c !== void 0 ? _c : '',
+        next_vote_date: getNextVoteDate(),
     };
 }
 function commentToIssue(context, template, additionalVariables) {
@@ -9427,7 +9444,7 @@ This proposal can be put to vote again in 90 days (using \`${config_1.BOT_USERNA
         resultMessage = `
 ${resultMessage}
 
-cc @${config_1.CHAIR_TEAM} @${config_1.MAINTAINERS_TEAM}
+cc @${config_1.MAINTAINERS_TEAM}
 `;
         const vars = {
             vote_thumbs_ups_tags: thumbsUpsTags.join(' '),
