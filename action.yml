@@ -1,20 +1,20 @@
-name: 'publiccode.yml bot'
-description: 'The bot automating the publiccodeyml organization procedures'
+name: "publiccode.yml bot"
+description: "The bot automating the publiccodeyml organization procedures"
 
 inputs:
   github_token:
-    description: 'GITHUB_TOKEN'
+    description: "GITHUB_TOKEN"
     required: false
-    default: '${{ github.token }}'
+    default: "${{ github.token }}"
   username:
     description: The username of the bot
     required: false
     default: bot
 
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: node24
+  main: "dist/index.js"
 
 branding:
-  icon: 'activity'
-  color: 'white'
+  icon: "activity"
+  color: "white"
