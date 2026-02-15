@@ -67,13 +67,16 @@ function getNextVoteDate() {
   const now = new Date();
   const year = now.getFullYear();
 
+  // Today at 00:00. We compare dates (not times).
+  const today = new Date(year, now.getMonth(), now.getDate());
+
   const schedule = [
     new Date(year, 0 /* Jan */, 30),
     new Date(year, 4 /* May */, 30),
     new Date(year, 8 /* Sep */, 30),
   ];
 
-  const next = schedule.find(d => d > now);
+  const next = schedule.find(d => d > today);
   const nextDate = next ?? new Date(year + 1, schedule[0]!.getMonth(), schedule[0]!.getDate());
 
   return nextDate.toLocaleDateString('en-US', {
