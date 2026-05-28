@@ -3,7 +3,7 @@ import { Context } from '@actions/github/lib/context';
 import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types';
 import { BOT_USERNAME, MAINTAINERS_TEAM } from '../config';
 import {
-  reactToComment, commentToIssue, addLabels, removeLabel,
+  reactToComment, commentToIssue, addLabels, removeLabel, hasLabel,
 } from '../bot';
 import { LabelName } from '../labels';
 import octokit from '../octokit';
@@ -100,6 +100,8 @@ export default async function run(context: Context) {
 
   reactToComment(context);
 
+  const isReleaseCandidate = hasLabel(context, 'v1');
+
   const { owner, repo, number } = context.issue;
 
   const comments = await octokit.paginate(
@@ -159,7 +161,13 @@ export default async function run(context: Context) {
 
   switch (+voteResults) {
     case VoteResult.Approved:
-      resultMessage = `
+      resultMessage = isReleaseCandidate
+        ? `
+**Proposal approved** :+1:
+
+This proposal will be merged into the \`1.0-rc\` branch and released later as part of v1.0.
+      `
+        : `
 **Proposal approved** :+1:
 
 This proposal is now ready to be merged and get released with a new version of the standard.
