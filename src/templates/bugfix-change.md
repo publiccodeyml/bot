@@ -1,7 +1,12 @@
 Thanks for your contribution :pray:
 
+{{^release_candidate}}
 This is now marked as a [`bugfix-change` proposal to the standard](https://github.com/publiccodeyml/publiccode.yml/labels/standard-bugfix-change),
 this means that this change won't break any compatibility with the old versions of the Standard.
+{{/release_candidate}}
+{{#release_candidate}}
+This is now marked as a [`bugfix-change` proposal to the standard](https://github.com/publiccodeyml/publiccode.yml/labels/standard-bugfix-change). This targets the upcoming **v1.0** on the `1.0-rc` branch.
+{{/release_candidate}}
 
 Example of bugfix changes are typo fixes.
 

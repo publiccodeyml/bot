@@ -21,6 +21,7 @@ interface TemplateVariables {
   bot_username: string;
   comment_author_username: string;
   next_vote_date: string;
+  release_candidate: boolean;
 }
 
 export interface Command {
@@ -49,6 +50,12 @@ export async function isMaintainer(org: string, username: string) {
 
 export async function isChair(org: string, username: string) {
   return inTeam(org, username, 'chair');
+}
+
+export function hasLabel(context: Context, name: LabelName): boolean {
+  const labels = (context.payload.issue?.labels ?? []) as Array<{ name?: string }>;
+
+  return labels.some(label => label.name === name);
 }
 
 export async function reactToComment(context: Context) {
@@ -94,6 +101,7 @@ function toMustacheView(context: Context): TemplateVariables {
     steering_committee_team: STEERING_COMMITTEE_TEAM,
     comment_author_username: context.payload.comment?.user?.login ?? '',
     next_vote_date: getNextVoteDate(),
+    release_candidate: hasLabel(context, 'v1'),
   };
 }
 

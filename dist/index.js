@@ -8923,7 +8923,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.removeLabel = exports.addLabels = exports.setLabels = exports.commentToIssue = exports.reactToComment = exports.isChair = exports.isMaintainer = exports.inTeam = exports.getCommandsFromComment = void 0;
+exports.removeLabel = exports.addLabels = exports.setLabels = exports.commentToIssue = exports.reactToComment = exports.hasLabel = exports.isChair = exports.isMaintainer = exports.inTeam = exports.getCommandsFromComment = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const mustache_1 = __importDefault(__nccwpck_require__(8272));
 const config_1 = __nccwpck_require__(6373);
@@ -8956,6 +8956,12 @@ function isChair(org, username) {
     });
 }
 exports.isChair = isChair;
+function hasLabel(context, name) {
+    var _a, _b;
+    const labels = ((_b = (_a = context.payload.issue) === null || _a === void 0 ? void 0 : _a.labels) !== null && _b !== void 0 ? _b : []);
+    return labels.some(label => label.name === name);
+}
+exports.hasLabel = hasLabel;
 function reactToComment(context) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -8996,6 +9002,7 @@ function toMustacheView(context) {
         steering_committee_team: config_1.STEERING_COMMITTEE_TEAM,
         comment_author_username: (_c = (_b = (_a = context.payload.comment) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.login) !== null && _c !== void 0 ? _c : '',
         next_vote_date: getNextVoteDate(),
+        release_candidate: hasLabel(context, 'v1'),
     };
 }
 function commentToIssue(context, template, additionalVariables) {
@@ -9384,6 +9391,7 @@ function run(context) {
         // eslint-disable-next-line prefer-template,no-path-concat
         const template = (0, fs_1.readFileSync)(__nccwpck_require__.ab + "vote-end.md", 'utf8');
         (0, bot_1.reactToComment)(context);
+        const isReleaseCandidate = (0, bot_1.hasLabel)(context, 'v1');
         const { owner, repo, number } = context.issue;
         const comments = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues/:issue_number/comments', { owner, repo, issue_number: number });
         const voteComment = getBotComment(comments, '<!-- ##bot-voting-marker## -->');
@@ -9420,7 +9428,13 @@ function run(context) {
         const voteResults = processResults(thumbsUps.map(t => t.user.login), thumbsDowns.map(t => t.user.login), !isAdditionalPeriod, approvingMember);
         switch (+voteResults) {
             case VoteResult.Approved:
-                resultMessage = `
+                resultMessage = isReleaseCandidate
+                    ? `
+**Proposal approved** :+1:
+
+This proposal will be merged into the \`1.0-rc\` branch and released later as part of v1.0.
+      `
+                    : `
 **Proposal approved** :+1:
 
 This proposal is now ready to be merged and get released with a new version of the standard.
