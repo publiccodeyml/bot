@@ -39,9 +39,18 @@ export function getCommandsFromComment(body: string): Command[] {
 }
 
 export async function inTeam(org: string, username: string, team: string) {
-  const members = await octokit.teams.listMembersInOrg({ org, team_slug: team });
+  try {
+    const members = await octokit.teams.listMembersInOrg({ org, team_slug: team });
 
-  return members.data.map(m => m.login).includes(username);
+    return members.data.map(m => m.login).includes(username);
+  } catch (e) {
+    if ((e as RequestError).status === 404) {
+      console.warn(`404 while fetching members of '${team}' team`);
+      return false;
+    }
+
+    throw e;
+  }
 }
 
 export async function isMaintainer(org: string, username: string) {
