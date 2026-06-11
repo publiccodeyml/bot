@@ -8939,8 +8939,17 @@ function getCommandsFromComment(body) {
 exports.getCommandsFromComment = getCommandsFromComment;
 function inTeam(org, username, team) {
     return __awaiter(this, void 0, void 0, function* () {
-        const members = yield octokit_1.default.teams.listMembersInOrg({ org, team_slug: team });
-        return members.data.map(m => m.login).includes(username);
+        try {
+            const members = yield octokit_1.default.teams.listMembersInOrg({ org, team_slug: team });
+            return members.data.map(m => m.login).includes(username);
+        }
+        catch (e) {
+            if (e.status === 404) {
+                console.error(`404 while fetching members of '${team}' team`);
+                return false;
+            }
+            throw e;
+        }
     });
 }
 exports.inTeam = inTeam;
