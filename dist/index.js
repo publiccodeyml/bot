@@ -9618,15 +9618,7 @@ function buildUpdatedComment(body, newLines, newState) {
     return `${withoutMarker}\n${newLines.join('\n')}\n\n${stateMarker}`;
 }
 exports.buildUpdatedComment = buildUpdatedComment;
-function steeringCommitteeMembers() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return (yield octokit_1.default.teams.listMembersInOrg({
-            org: 'publiccodeyml',
-            team_slug: 'steering-committee',
-        })).data.map(m => m.login);
-    });
-}
-function syncIssueVoteLog(owner, repo, issueNumber, members) {
+function syncIssueVoteLog(owner, repo, issueNumber) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const comments = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues/:issue_number/comments', { owner, repo, issue_number: issueNumber });
@@ -9643,9 +9635,8 @@ function syncIssueVoteLog(owner, repo, issueNumber, members) {
             repo,
             comment_id: voteComment.id,
         });
-        const committee = members !== null && members !== void 0 ? members : yield steeringCommitteeMembers();
         const liveReactions = reactions.data
-            .filter(r => { var _a, _b; return (r.content === '+1' || r.content === '-1') && committee.includes((_b = (_a = r.user) === null || _a === void 0 ? void 0 : _a.login) !== null && _b !== void 0 ? _b : ''); })
+            .filter(r => r.content === '+1' || r.content === '-1')
             .map(r => ({
             login: r.user.login,
             content: r.content,
@@ -9673,8 +9664,7 @@ function run(owner, repo) {
         const issues = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues', {
             owner, repo, state: 'open', labels: 'vote-start',
         });
-        const members = yield steeringCommitteeMembers();
-        yield Promise.all(issues.map(issue => syncIssueVoteLog(owner, repo, issue.number, members)));
+        yield Promise.all(issues.map(issue => syncIssueVoteLog(owner, repo, issue.number)));
     });
 }
 exports["default"] = run;
