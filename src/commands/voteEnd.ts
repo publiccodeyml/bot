@@ -5,6 +5,7 @@ import { BOT_USERNAME, MAINTAINERS_TEAM } from '../config';
 import {
   reactToComment, commentToIssue, addLabels, removeLabel, hasLabel,
 } from '../bot';
+import { syncIssueVoteLog } from './voteSync';
 import { LabelName } from '../labels';
 import octokit from '../octokit';
 
@@ -129,6 +130,8 @@ export default async function run(context: Context) {
       return;
     }
   }
+
+  await syncIssueVoteLog(owner, repo, number);
 
   const reactions = await octokit.reactions.listForIssueComment({
     owner,
