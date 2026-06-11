@@ -3,9 +3,17 @@ import { context } from '@actions/github';
 import { getCommandsFromComment, isChair, isMaintainer } from './bot';
 import { runCommand } from './commands';
 import { BOT_USERNAME } from './config';
+import voteSync from './commands/voteSync';
 
 async function run() {
   // TODO: Check for github.context.eventName == 'issue_comment'
+
+  const { eventName } = context;
+  if (eventName === 'schedule' || eventName === 'workflow_dispatch') {
+    const { owner, repo } = context.repo;
+    await voteSync(owner, repo);
+    return;
+  }
 
   const { comment } = context.payload;
   if (!comment) {

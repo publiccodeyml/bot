@@ -9325,6 +9325,7 @@ exports.processResults = exports.VoteResult = void 0;
 const fs_1 = __nccwpck_require__(7147);
 const config_1 = __nccwpck_require__(6373);
 const bot_1 = __nccwpck_require__(8104);
+const voteSync_1 = __nccwpck_require__(2564);
 const octokit_1 = __importDefault(__nccwpck_require__(6161));
 var VoteResult;
 (function (VoteResult) {
@@ -9413,6 +9414,7 @@ function run(context) {
                 return;
             }
         }
+        yield (0, voteSync_1.syncIssueVoteLog)(owner, repo, number);
         const reactions = yield octokit_1.default.reactions.listForIssueComment({
             owner,
             repo,
@@ -9538,6 +9540,142 @@ exports["default"] = run;
 
 /***/ }),
 
+/***/ 2564:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.syncIssueVoteLog = exports.buildUpdatedComment = exports.diffVotes = exports.parseStateMarker = void 0;
+const config_1 = __nccwpck_require__(6373);
+const octokit_1 = __importDefault(__nccwpck_require__(6161));
+const STATE_MARKER_RE = /<!-- ##bot-vote-log-state## ({.*?}) -->/;
+function parseStateMarker(body) {
+    const match = body.match(STATE_MARKER_RE);
+    if (!match || !match[1])
+        return {};
+    try {
+        return JSON.parse(match[1]);
+    }
+    catch (_a) {
+        return {};
+    }
+}
+exports.parseStateMarker = parseStateMarker;
+function afterDeadlineSuffix(ts, deadline) {
+    if (!deadline || ts <= deadline)
+        return '';
+    return ', after the deadline';
+}
+function diffVotes(state, liveReactions, deadline, now) {
+    const liveMap = Object.fromEntries(liveReactions.map(r => [r.login, r]));
+    const changedOrNew = liveReactions.flatMap(r => {
+        const prev = state[r.login];
+        if (prev === r.content)
+            return [];
+        const removalLines = prev !== undefined
+            ? [`@${r.login} removed their vote (detected on ${now.toISOString()}${afterDeadlineSuffix(now, deadline)})`]
+            : [];
+        const emoji = r.content === '+1' ? ':+1:' : ':-1:';
+        const voteLine = `@${r.login} voted ${emoji} on ${r.created_at}${afterDeadlineSuffix(new Date(r.created_at), deadline)}`;
+        return [...removalLines, voteLine];
+    });
+    const removed = Object.keys(state)
+        .filter(login => !liveMap[login])
+        .map(login => `@${login} removed their vote (detected on ${now.toISOString()}${afterDeadlineSuffix(now, deadline)})`);
+    return [...changedOrNew, ...removed];
+}
+exports.diffVotes = diffVotes;
+const REMOVE_STATE_MARKER_RE = /\n\n<!-- ##bot-vote-log-state## .* -->$/;
+function buildUpdatedComment(body, newLines, newState) {
+    // GitHub rewrites the whole body to CRLF when a human edits the comment in
+    // the web UI, which breaks the LF-based marker and section matching below.
+    const normalized = body.replace(/\r\n?/g, '\n');
+    const withoutMarker = normalized.replace(REMOVE_STATE_MARKER_RE, '');
+    const stateMarker = `<!-- ##bot-vote-log-state## ${JSON.stringify(newState)} -->`;
+    if (!withoutMarker.includes('\n### Vote log\n')) {
+        return `${withoutMarker}\n\n---\n\n### Vote log\n\n${newLines.join('\n')}\n\n${stateMarker}`;
+    }
+    return `${withoutMarker}\n${newLines.join('\n')}\n\n${stateMarker}`;
+}
+exports.buildUpdatedComment = buildUpdatedComment;
+function steeringCommitteeMembers() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return (yield octokit_1.default.teams.listMembersInOrg({
+            org: 'publiccodeyml',
+            team_slug: 'steering-committee',
+        })).data.map(m => m.login);
+    });
+}
+function syncIssueVoteLog(owner, repo, issueNumber, members) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const comments = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues/:issue_number/comments', { owner, repo, issue_number: issueNumber });
+        const voteComment = comments
+            .slice()
+            .reverse()
+            .find(c => { var _a, _b; return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.login) === config_1.BOT_USERNAME && ((_b = c.body) === null || _b === void 0 ? void 0 : _b.startsWith('<!-- ##bot-voting-marker## -->')); });
+        if (!voteComment) {
+            console.error(`Issue #${issueNumber}: can't find voting comment, skipping sync`);
+            return;
+        }
+        const reactions = yield octokit_1.default.reactions.listForIssueComment({
+            owner,
+            repo,
+            comment_id: voteComment.id,
+        });
+        const committee = members !== null && members !== void 0 ? members : yield steeringCommitteeMembers();
+        const liveReactions = reactions.data
+            .filter(r => { var _a, _b; return (r.content === '+1' || r.content === '-1') && committee.includes((_b = (_a = r.user) === null || _a === void 0 ? void 0 : _a.login) !== null && _b !== void 0 ? _b : ''); })
+            .map(r => ({
+            login: r.user.login,
+            content: r.content,
+            created_at: r.created_at,
+        }));
+        const body = (_a = voteComment.body) !== null && _a !== void 0 ? _a : '';
+        const state = parseStateMarker(body);
+        const deadlineMatch = body.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
+        const deadline = deadlineMatch ? new Date(deadlineMatch[1]) : null;
+        const now = new Date();
+        const newLines = diffVotes(state, liveReactions, deadline, now);
+        if (newLines.length === 0)
+            return;
+        const newState = Object.fromEntries(liveReactions.map(r => [r.login, r.content]));
+        yield octokit_1.default.issues.updateComment({
+            owner,
+            repo,
+            comment_id: voteComment.id,
+            body: buildUpdatedComment(body, newLines, newState),
+        });
+    });
+}
+exports.syncIssueVoteLog = syncIssueVoteLog;
+function run(owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const issues = yield octokit_1.default.paginate('GET /repos/:owner/:repo/issues', {
+            owner, repo, state: 'open', labels: 'vote-start',
+        });
+        const members = yield steeringCommitteeMembers();
+        yield Promise.all(issues.map(issue => syncIssueVoteLog(owner, repo, issue.number, members)));
+    });
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 6373:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -9569,15 +9707,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github_1 = __nccwpck_require__(5438);
 const bot_1 = __nccwpck_require__(8104);
 const commands_1 = __nccwpck_require__(4362);
 const config_1 = __nccwpck_require__(6373);
+const voteSync_1 = __importDefault(__nccwpck_require__(2564));
 function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         // TODO: Check for github.context.eventName == 'issue_comment'
+        const { eventName } = github_1.context;
+        if (eventName === 'schedule' || eventName === 'workflow_dispatch') {
+            const { owner, repo } = github_1.context.repo;
+            yield (0, voteSync_1.default)(owner, repo);
+            return;
+        }
         const { comment } = github_1.context.payload;
         if (!comment) {
             console.error('No comment object found');
