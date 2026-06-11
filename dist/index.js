@@ -9384,6 +9384,7 @@ function nationalSectionApprovingMember(labels, comments) {
 }
 const formatPercentage = (percentage) => (percentage ? `${percentage.toFixed(1)}%` : '-');
 function run(context) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         // We need ncc to detect the concatenation and include the template file
         // in the build
@@ -9398,6 +9399,19 @@ function run(context) {
         if (!voteComment) {
             console.error('Can\'t find the bot comment where the voting is taking place');
             return;
+        }
+        const deadlineMatch = (_a = voteComment.body) === null || _a === void 0 ? void 0 : _a.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
+        if (deadlineMatch) {
+            const deadline = new Date(deadlineMatch[1]);
+            if (deadline > new Date()) {
+                yield octokit_1.default.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: number,
+                    body: `The vote is still open until ${deadline.toUTCString()}.`,
+                });
+                return;
+            }
         }
         const reactions = yield octokit_1.default.reactions.listForIssueComment({
             owner,
