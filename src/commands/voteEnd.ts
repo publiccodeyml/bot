@@ -5,7 +5,7 @@ import { BOT_USERNAME, MAINTAINERS_TEAM } from '../config';
 import {
   reactToComment, commentToIssue, addLabels, removeLabel, hasLabel,
 } from '../bot';
-import { syncIssueVoteLog } from './voteSync';
+import { syncIssueVoteLog, resolveDeadline } from './voteSync';
 import { LabelName } from '../labels';
 import octokit from '../octokit';
 
@@ -116,19 +116,15 @@ export default async function run(context: Context) {
     return;
   }
 
-  const deadlineMatch = voteComment.body?.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
-  if (deadlineMatch) {
-    const deadline = new Date(deadlineMatch[1]!);
-    if (deadline > new Date()) {
-      await octokit.issues.createComment({
-        owner,
-        repo,
-        issue_number: number,
-        body: `The vote is still open until ${deadline.toUTCString()}.`,
-      });
-
-      return;
-    }
+  const deadline = resolveDeadline(voteComment.body ?? '', voteComment.created_at);
+  if (deadline > new Date()) {
+    await octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: number,
+      body: `The vote is still open until ${deadline.toUTCString()}.`,
+    });
+    return;
   }
 
   await syncIssueVoteLog(owner, repo, number);

@@ -1,5 +1,5 @@
 import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types';
-import { BOT_USERNAME } from '../config';
+import { BOT_USERNAME, VOTE_PERIOD_DAYS } from '../config';
 import octokit from '../octokit';
 
 type Comment = GetResponseDataTypeFromEndpointMethod<
@@ -15,6 +15,16 @@ export interface LiveReaction {
 }
 
 const STATE_MARKER_RE = /<!-- ##bot-vote-log-state## ({.*?}) -->/;
+const DEADLINE_MARKER_RE = /<!-- ##bot-vote-deadline## (\S+) -->/;
+
+export function resolveDeadline(body: string, commentCreatedAt: string): Date {
+  const match = body.match(DEADLINE_MARKER_RE);
+  if (match) return new Date(match[1]!);
+
+  const deadline = new Date(commentCreatedAt);
+  deadline.setDate(deadline.getDate() + VOTE_PERIOD_DAYS);
+  return deadline;
+}
 
 export function parseStateMarker(body: string): VoteState {
   const match = body.match(STATE_MARKER_RE);
@@ -128,8 +138,7 @@ export async function syncIssueVoteLog(
   const body = voteComment.body ?? '';
   const state = parseStateMarker(body);
 
-  const deadlineMatch = body.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
-  const deadline = deadlineMatch ? new Date(deadlineMatch[1]!) : null;
+  const deadline = resolveDeadline(body, voteComment.created_at);
 
   const now = new Date();
   const newLines = diffVotes(state, liveReactions, deadline, now);
