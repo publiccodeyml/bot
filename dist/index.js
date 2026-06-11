@@ -8945,7 +8945,7 @@ function inTeam(org, username, team) {
         }
         catch (e) {
             if (e.status === 404) {
-                console.warn(`404 while fetching members of '${team}' team`);
+                console.error(`404 while fetching members of '${team}' team`);
                 return false;
             }
             throw e;
