@@ -9514,6 +9514,7 @@ function run(context) {
         const vars = {
             vote_period_days: config_1.VOTE_PERIOD_DAYS.toString(),
             vote_end_date: date.toUTCString(),
+            vote_end_date_iso: date.toISOString(),
         };
         yield (0, bot_1.commentToIssue)(context, template, vars);
     });

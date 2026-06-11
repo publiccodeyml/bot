@@ -20,6 +20,7 @@ export default async function run(context: Context) {
   const vars = {
     vote_period_days: VOTE_PERIOD_DAYS.toString(),
     vote_end_date: date.toUTCString(),
+    vote_end_date_iso: date.toISOString(),
   };
 
   await commentToIssue(context, template, vars);
