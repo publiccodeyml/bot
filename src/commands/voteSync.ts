@@ -15,6 +15,12 @@ export interface LiveReaction {
 }
 
 const STATE_MARKER_RE = /<!-- ##bot-vote-log-state## ({.*?}) -->/;
+const DEADLINE_MARKER_RE = /<!-- ##bot-vote-deadline## (\S+) -->/;
+
+export function resolveDeadline(body: string): Date | null {
+  const match = body.match(DEADLINE_MARKER_RE);
+  return match ? new Date(match[1]!) : null;
+}
 
 export function parseStateMarker(body: string): VoteState {
   const match = body.match(STATE_MARKER_RE);
@@ -128,8 +134,7 @@ export async function syncIssueVoteLog(
   const body = voteComment.body ?? '';
   const state = parseStateMarker(body);
 
-  const deadlineMatch = body.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
-  const deadline = deadlineMatch ? new Date(deadlineMatch[1]!) : null;
+  const deadline = resolveDeadline(body);
 
   const now = new Date();
   const newLines = diffVotes(state, liveReactions, deadline, now);

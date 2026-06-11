@@ -1,4 +1,15 @@
-import { parseStateMarker, diffVotes, buildUpdatedComment } from './voteSync';
+import {
+  parseStateMarker, diffVotes, buildUpdatedComment, resolveDeadline,
+} from './voteSync';
+
+test('resolveDeadline reads the marker when present', () => {
+  const body = 'body\n\n<!-- ##bot-vote-deadline## 2026-06-25T07:00:00.000Z -->';
+  expect(resolveDeadline(body)).toEqual(new Date('2026-06-25T07:00:00.000Z'));
+});
+
+test('resolveDeadline returns null when the marker is absent', () => {
+  expect(resolveDeadline('no marker here')).toBeNull();
+});
 
 test('parseStateMarker returns empty object when marker is absent', () => {
   expect(parseStateMarker('<!-- ##bot-voting-marker## -->\nsome body')).toEqual({});

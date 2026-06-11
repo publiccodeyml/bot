@@ -9401,18 +9401,15 @@ function run(context) {
             console.error('Can\'t find the bot comment where the voting is taking place');
             return;
         }
-        const deadlineMatch = (_a = voteComment.body) === null || _a === void 0 ? void 0 : _a.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
-        if (deadlineMatch) {
-            const deadline = new Date(deadlineMatch[1]);
-            if (deadline > new Date()) {
-                yield octokit_1.default.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: number,
-                    body: `The vote is still open until ${deadline.toUTCString()}.`,
-                });
-                return;
-            }
+        const deadline = (0, voteSync_1.resolveDeadline)((_a = voteComment.body) !== null && _a !== void 0 ? _a : '');
+        if (deadline && deadline > new Date()) {
+            yield octokit_1.default.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body: `The vote is still open until ${deadline.toUTCString()}.`,
+            });
+            return;
         }
         yield (0, voteSync_1.syncIssueVoteLog)(owner, repo, number);
         const reactions = yield octokit_1.default.reactions.listForIssueComment({
@@ -9558,10 +9555,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.syncIssueVoteLog = exports.buildUpdatedComment = exports.diffVotes = exports.parseStateMarker = void 0;
+exports.syncIssueVoteLog = exports.buildUpdatedComment = exports.diffVotes = exports.parseStateMarker = exports.resolveDeadline = void 0;
 const config_1 = __nccwpck_require__(6373);
 const octokit_1 = __importDefault(__nccwpck_require__(6161));
 const STATE_MARKER_RE = /<!-- ##bot-vote-log-state## ({.*?}) -->/;
+const DEADLINE_MARKER_RE = /<!-- ##bot-vote-deadline## (\S+) -->/;
+function resolveDeadline(body) {
+    const match = body.match(DEADLINE_MARKER_RE);
+    return match ? new Date(match[1]) : null;
+}
+exports.resolveDeadline = resolveDeadline;
 function parseStateMarker(body) {
     const match = body.match(STATE_MARKER_RE);
     if (!match || !match[1])
@@ -9646,8 +9649,7 @@ function syncIssueVoteLog(owner, repo, issueNumber, members) {
         }));
         const body = (_a = voteComment.body) !== null && _a !== void 0 ? _a : '';
         const state = parseStateMarker(body);
-        const deadlineMatch = body.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
-        const deadline = deadlineMatch ? new Date(deadlineMatch[1]) : null;
+        const deadline = resolveDeadline(body);
         const now = new Date();
         const newLines = diffVotes(state, liveReactions, deadline, now);
         if (newLines.length === 0)
