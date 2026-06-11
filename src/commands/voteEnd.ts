@@ -116,8 +116,8 @@ export default async function run(context: Context) {
     return;
   }
 
-  const deadline = resolveDeadline(voteComment.body ?? '');
-  if (deadline && deadline > new Date()) {
+  const deadline = resolveDeadline(voteComment.body ?? '', voteComment.created_at);
+  if (deadline > new Date()) {
     await octokit.issues.createComment({
       owner,
       repo,

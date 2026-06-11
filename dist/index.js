@@ -9401,8 +9401,8 @@ function run(context) {
             console.error('Can\'t find the bot comment where the voting is taking place');
             return;
         }
-        const deadline = (0, voteSync_1.resolveDeadline)((_a = voteComment.body) !== null && _a !== void 0 ? _a : '');
-        if (deadline && deadline > new Date()) {
+        const deadline = (0, voteSync_1.resolveDeadline)((_a = voteComment.body) !== null && _a !== void 0 ? _a : '', voteComment.created_at);
+        if (deadline > new Date()) {
             yield octokit_1.default.issues.createComment({
                 owner,
                 repo,
@@ -9560,9 +9560,13 @@ const config_1 = __nccwpck_require__(6373);
 const octokit_1 = __importDefault(__nccwpck_require__(6161));
 const STATE_MARKER_RE = /<!-- ##bot-vote-log-state## ({.*?}) -->/;
 const DEADLINE_MARKER_RE = /<!-- ##bot-vote-deadline## (\S+) -->/;
-function resolveDeadline(body) {
+function resolveDeadline(body, commentCreatedAt) {
     const match = body.match(DEADLINE_MARKER_RE);
-    return match ? new Date(match[1]) : null;
+    if (match)
+        return new Date(match[1]);
+    const deadline = new Date(commentCreatedAt);
+    deadline.setDate(deadline.getDate() + config_1.VOTE_PERIOD_DAYS);
+    return deadline;
 }
 exports.resolveDeadline = resolveDeadline;
 function parseStateMarker(body) {
@@ -9649,7 +9653,7 @@ function syncIssueVoteLog(owner, repo, issueNumber, members) {
         }));
         const body = (_a = voteComment.body) !== null && _a !== void 0 ? _a : '';
         const state = parseStateMarker(body);
-        const deadline = resolveDeadline(body);
+        const deadline = resolveDeadline(body, voteComment.created_at);
         const now = new Date();
         const newLines = diffVotes(state, liveReactions, deadline, now);
         if (newLines.length === 0)
