@@ -12,3 +12,5 @@ This proposal targets **v1.0**. If approved it will be merged into the `1.0-rc` 
 
 {{/release_candidate}}
 cc @{{{ steering_committee_team }}}
+
+<!-- ##bot-vote-deadline## {{ vote_end_date_iso }} -->
