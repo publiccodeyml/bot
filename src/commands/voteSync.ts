@@ -91,18 +91,10 @@ export function buildUpdatedComment(
   return `${withoutMarker}\n${newLines.join('\n')}\n\n${stateMarker}`;
 }
 
-async function steeringCommitteeMembers(): Promise<string[]> {
-  return (await octokit.teams.listMembersInOrg({
-    org: 'publiccodeyml',
-    team_slug: 'steering-committee',
-  })).data.map(m => m.login);
-}
-
 export async function syncIssueVoteLog(
   owner: string,
   repo: string,
   issueNumber: number,
-  members?: string[],
 ): Promise<void> {
   const comments = await octokit.paginate(
     'GET /repos/:owner/:repo/issues/:issue_number/comments',
@@ -125,10 +117,8 @@ export async function syncIssueVoteLog(
     comment_id: voteComment.id,
   });
 
-  const committee = members ?? await steeringCommitteeMembers();
-
   const liveReactions: LiveReaction[] = reactions.data
-    .filter(r => (r.content === '+1' || r.content === '-1') && committee.includes(r.user?.login ?? ''))
+    .filter(r => r.content === '+1' || r.content === '-1')
     .map(r => ({
       login: r.user!.login,
       content: r.content as '+1' | '-1',
@@ -163,7 +153,5 @@ export default async function run(owner: string, repo: string): Promise<void> {
     },
   ) as Array<{ number: number }>;
 
-  const members = await steeringCommitteeMembers();
-
-  await Promise.all(issues.map(issue => syncIssueVoteLog(owner, repo, issue.number, members)));
+  await Promise.all(issues.map(issue => syncIssueVoteLog(owner, repo, issue.number)));
 }
