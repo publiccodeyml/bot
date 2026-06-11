@@ -45,7 +45,7 @@ export async function inTeam(org: string, username: string, team: string) {
     return members.data.map(m => m.login).includes(username);
   } catch (e) {
     if ((e as RequestError).status === 404) {
-      console.warn(`404 while fetching members of '${team}' team`);
+      console.error(`404 while fetching members of '${team}' team`);
       return false;
     }
 
