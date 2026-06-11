@@ -115,6 +115,21 @@ export default async function run(context: Context) {
     return;
   }
 
+  const deadlineMatch = voteComment.body?.match(/<!-- ##bot-vote-deadline## (\S+) -->/);
+  if (deadlineMatch) {
+    const deadline = new Date(deadlineMatch[1]!);
+    if (deadline > new Date()) {
+      await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: number,
+        body: `The vote is still open until ${deadline.toUTCString()}.`,
+      });
+
+      return;
+    }
+  }
+
   const reactions = await octokit.reactions.listForIssueComment({
     owner,
     repo,
